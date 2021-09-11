@@ -2,20 +2,31 @@ from socket import *
 import threading
 class SendingThread(threading.Thread):
     def __init__(self,ClientSocketToSend):
+        threading.Thread.__init__(self)
         self.ClientSocketToSend = ClientSocketToSend
         return
     def run(self):
         while True:
-            message = input("Enter Message to send:")
+            print("Enter message to Send" , flush=True)
+            message = input()
             dest = input("Enter destination:")
-            message_formated = "SEND "+dest+'\n'+'Content-length:'+str(len(message))+"\n\n"
+            message_formated = "SEND "+dest+'\n'+'Content-length: '+str(len(message))+"\n\n"+message+'\n'
             self.ClientSocketToSend.send(message_formated.encode())
-            reply = self.ClientSocketToSend.recv(1024)
+            reply = self.ClientSocketToSend.recv(1024)#Check the status of the sent message.
             reply = reply.decode()
             if(reply == "ERROR 103 Header incomplete\n\n"):
                 exit
+            else:
+                data = reply.split()
+                if data[0] == 'SEND':
+                    continue
+                else:
+                    print("Error, message could not be delivered. Please check the intended username", flush=True)
+
+                    
 class ReceivingThread(threading.Thread):
     def __init__(self,ClientSocketToReceive):
+        threading.Thread.__init__(self)
         self.ClientSocketToReceive = ClientSocketToReceive
         return 
     def run(self):
@@ -23,15 +34,45 @@ class ReceivingThread(threading.Thread):
             message = self.ClientSocketToReceive.recv(1024)   
             message = message.decode()
             data = message.split()
-            assert(len(data)>=3 and data[2].isdigit())
-            s = ''
-            l = len(data[0])+1+len(data[1]+1+len(data[2]))
-            for i in range(l, l+int(data[2])):
-                s+=message[i]
-            print("Message from: ", data[1],":",end = '')    
-            print(s)    
-        exit    
-                
+            assert(len(data)>=3 and data[3].isdigit())
+            s = message[message.find('\n\n'):]
+            
+            print("Message from: ", data[1],":",end = '',flush=True)   
+            s = s.strip() 
+            print(len(s), int(data[3]))
+            print(s,flush=True)      
+            msg = 'RECEIVED '+data[1]+'\n\n'
+            self.ClientSocketToReceive.send(msg.encode())
+def Register():
+    while True:
+        reg = "REGISTER TOSEND "
+        print("Enter user name:", flush=True)
+        usr_name = input()
+        reg+= usr_name+'\n\n'
+        ClientSocketToSend.send(reg.encode())
+        message = ClientSocketToSend.recv(1024)
+        message = message.decode()
+        data = message.split()
+        print(message)
+        if data[0] == "REGISTERED":
+            break
+    ClientSocketToReceive = socket(AF_INET, SOCK_STREAM)
+    ClientSocketToReceive.connect((serverName, serverPort))
+    reg = 'REGISTER TORECV '+usr_name+"\n\n"
+    print("Sending message TO server about registering receiving socket", flush=True)
+    ClientSocketToReceive.send(reg.encode())
+    print("Message sent",flush=True)
+    message = ClientSocketToReceive.recv(1024).decode()
+    print("Received message is ", message)
+    data = message.split()
+    if data[0] == "REGISTERED":
+        print("Registration Completed",flush=True)
+        st = SendingThread(ClientSocketToSend)
+        rt = ReceivingThread(ClientSocketToReceive)
+        st.start()
+        rt.start()
+    else:
+        print("Some error",flush=True)    
 
 
 serverName = 'localhost'
@@ -39,33 +80,4 @@ serverPort = 18000
 ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
 ClientSocketToSend.connect((serverName, serverPort))
 usr_name = ''
-
-while True:
-    reg = "REGISTER TOSEND "
-    usr_name = input("Enter username:")
-    reg+= usr_name+'\n\n'
-    ClientSocketToSend.send(reg.encode())
-    message = ClientSocketToSend.recv(1024)
-    message = message.decode()
-    data = message.split()
-    if data[0] == "RESGISTERED":
-        break
-
-
-ClientSocketToReceive = socket(AF_INET, SOCK_STREAM)
-ClientSocketToReceive.connect((serverName, serverPort))
-reg = 'RESGISTER TORECV '+usr_name+"\n\n"
-ClientSocketToSend.send(reg.encode())
-message = ClientSocketToReceive.recv(1024).decode()
-data = message.split()
-
-
-
-ClientSocketToSend.send(reg.encode())
-message = ClientSocketToReceive.recv(1024).decode()
-data = message.split()
-if data[0] == "REGISTERED":
-    st = SendingThread(ClientSocketToSend)
-    rt = ReceivingThread(ClientSocketToReceive)
-    st.start()
-    rt.start()
+Register()
