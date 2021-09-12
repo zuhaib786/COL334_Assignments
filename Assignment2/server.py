@@ -8,6 +8,14 @@ serverSocket = socket(AF_INET, SOCK_STREAM)
 serverSocket.bind(('localhost', serverPort))
 serverSocket.listen()
 print("The server is ready to receive")
+def extract_username(message):
+    data = message.split()
+    if(len(data)<=2):
+        return '@'
+    else:
+        le = len(data[0])+1+len(data[1])+1
+        ans = message[le:-2]
+        return ans      
 class SendingThread(threading.Thread):
     def __init__(self,connectionSocket, sender, message, receiver):
         threading.Thread.__init__(self)
@@ -169,12 +177,15 @@ def ServerProgrammeStart():
         data = message.split()
         if data[0] == "REGISTER":
             if data[1] == 'TOSEND':
-                rt = RegisteringThreadSend(connectionSocket,data[2])
+                rt = RegisteringThreadSend(connectionSocket,extract_username(message))
                 rt.start()
             elif data[1] == 'TORECV':
-                rcv_rt = RegisteringThreadRecv(connectionSocket, data[2])
+                rcv_rt = RegisteringThreadRecv(connectionSocket, extract_username(message))
                 rcv_rt.start()
             else:
-                reply = "ERROR 100 Malformed username\n\n"
-                connectionSocket.send(reply)      
+                reply = "Incorrect registration\n\n"
+                connectionSocket.send(reply.encode())      
+        else:
+            reply = 'ERROR 101 No user registered\n\n' 
+            connectionSocket.send(reply.encode())     
 ServerProgrammeStart()                               

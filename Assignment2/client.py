@@ -47,6 +47,8 @@ class ReceivingThread(threading.Thread):
             msg = 'RECEIVED '+data[1]+'\n\n'
             self.ClientSocketToReceive.send(msg.encode())
 def Register():
+    ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
+    ClientSocketToSend.connect((serverName, serverPort))
     while True:
         reg = "REGISTER TOSEND "
         print("Enter user name:", flush=True)
@@ -59,6 +61,9 @@ def Register():
         print(message)
         if data[0] == "REGISTERED":
             break
+        elif message == 'ERROR 101 No user registered\n\n' or message == "Incorrect registration\n\n":
+            ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
+            ClientSocketToSend.connect((serverName,serverPort))
     ClientSocketToReceive = socket(AF_INET, SOCK_STREAM)
     ClientSocketToReceive.connect((serverName, serverPort))
     reg = 'REGISTER TORECV '+usr_name+"\n\n"
@@ -79,7 +84,4 @@ def Register():
 
 serverName = 'localhost'
 serverPort = 18000
-ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
-ClientSocketToSend.connect((serverName, serverPort))
-usr_name = ''
 Register()
