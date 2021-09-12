@@ -62,11 +62,10 @@ def Register():
     ClientSocketToReceive = socket(AF_INET, SOCK_STREAM)
     ClientSocketToReceive.connect((serverName, serverPort))
     reg = 'REGISTER TORECV '+usr_name+"\n\n"
-    print("Sending message TO server about registering receiving socket", flush=True)
+    print("Sending message TO server about registering", flush=True)
     ClientSocketToReceive.send(reg.encode())
     print("Message sent",flush=True)
     message = ClientSocketToReceive.recv(1024).decode()
-    print("Received message is ", message)
     data = message.split()
     if data[0] == "REGISTERED":
         print("Registration Completed",flush=True)
@@ -75,7 +74,7 @@ def Register():
         st.start()
         rt.start()
     else:
-        print("Some error",flush=True)    
+        print("Some error, Try changing username and reapply",flush=True)    
 
 
 serverName = 'localhost'
