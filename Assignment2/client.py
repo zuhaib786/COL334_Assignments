@@ -34,12 +34,15 @@ class ReceivingThread(threading.Thread):
             message = self.ClientSocketToReceive.recv(1024)   
             message = message.decode()
             data = message.split()
-            assert(len(data)>=3 and data[3].isdigit())
             s = message[message.find('\n\n'):]
-            
-            print("Message from: ", data[1],":",end = '',flush=True)   
             s = s.strip() 
-            print(len(s), int(data[3]))
+            # print(len(s), int(data[3]),len(s) == int(data[3]),flush=True)
+            # print(data, flush=True)
+            if(data[2]!='Content-length:' or len(s)!=int(data[3])):
+                msg = 'ERROR 103 Incomplete Header\n\n'
+                self.ClientSocketToReceive.send(msg.encode())
+                continue
+            print("Message from: ", data[1]," : ",end = '',flush=True)   
             print(s,flush=True)      
             msg = 'RECEIVED '+data[1]+'\n\n'
             self.ClientSocketToReceive.send(msg.encode())
