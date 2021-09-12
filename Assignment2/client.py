@@ -1,6 +1,9 @@
 from socket import *
 import threading
 class SendingThread(threading.Thread):
+    '''
+    Thread client uses to send messages to another users(Technically to server which forwards to appropriate receicver.)
+    '''
     def __init__(self,ClientSocketToSend):
         threading.Thread.__init__(self)
         self.ClientSocketToSend = ClientSocketToSend
@@ -25,6 +28,9 @@ class SendingThread(threading.Thread):
 
                     
 class ReceivingThread(threading.Thread):
+    '''
+    Thread client uses to receive message from other users.
+    '''
     def __init__(self,ClientSocketToReceive):
         threading.Thread.__init__(self)
         self.ClientSocketToReceive = ClientSocketToReceive
@@ -47,6 +53,9 @@ class ReceivingThread(threading.Thread):
             msg = 'RECEIVED '+data[1]+'\n\n'
             self.ClientSocketToReceive.send(msg.encode())
 def Register():
+    '''
+    Register the client.
+    '''
     ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
     ClientSocketToSend.connect((serverName, serverPort))
     while True:

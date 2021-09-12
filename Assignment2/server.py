@@ -9,6 +9,15 @@ serverSocket.bind(('localhost', serverPort))
 serverSocket.listen()
 print("The server is ready to receive")
 def extract_username(message):
+    '''
+    Given message in the specified format, it extracts username from the message.
+
+    Parameters:
+    message: Message of the form REGISTER TORECV/TOSEND Username\n\n
+
+    Returns:
+    Username.
+    '''
     data = message.split()
     if(len(data)<=2):
         return '@'
@@ -17,7 +26,21 @@ def extract_username(message):
         ans = message[le:-2]
         return ans      
 class SendingThread(threading.Thread):
+    '''
+    Thread server uses to forward messages from a socket.
+    '''
     def __init__(self,connectionSocket, sender, message, receiver):
+        '''
+        Thread initialization. Specifying various fields the thread needs to run.
+
+        Parameters:
+        connectionSocket: The connection socket between the server and the receiver's Receiver socket.
+        sender: The username of the sender of the message.
+        receiver: The username of the receiver of the message.
+        
+        Returns:
+        An instance of the SendingThread.
+        '''
         threading.Thread.__init__(self)
         self.connectionSocket = connectionSocket
         self.sender = sender
@@ -41,7 +64,21 @@ class SendingThread(threading.Thread):
             msg = 'ERROR 102 Unable to send\n\n'
             senderSocket.send(msg.encode())    
 class BroadcastSendingThread(threading.Thread):
+    '''
+    Thread used for broadcasting messages to all users.
+    '''
     def __init__(self, connectionSocket, sender, message, receiver):
+        '''
+        Thread initialization. Specifying various fields thread needs to run.
+        
+        Parameters:
+        connectionSocket: The connection socket between the server and the receiver's Receiver socket.
+        sender: The username of the sender of the message.
+        receiver: The username of the receiver of the message.
+        
+        Returns:
+        An instance of the BroadcastSendingThread.
+        '''
         threading.Thread.__init__(self)
         self.connectionSocket = connectionSocket
         self.sender = sender
@@ -57,12 +94,27 @@ class BroadcastSendingThread(threading.Thread):
         msg = self.connectionSocket.recv(1024).decode()
         data = msg.split()
 class RegisteringThreadSend(threading.Thread):
+    '''
+    Thread used for registering sending socket of a user.
+    '''
     def __init__(self,connectionSocket,username):
+        '''
+        Thread Initialization
+        Parameters:
+        connectionSocket: The connection socket between the client sending socket and the server.
+        username: The username of the client.
+        Returns:
+        An instance of RegesteringThreadSend.
+        '''
         threading.Thread.__init__(self)
         self.connectionSocket = connectionSocket
         self.username = username
         return
     def validate(self):
+        '''
+        Validate a username.
+        Check it contains only [A-Z],[a-z] and [0-10]. No special characters and spaces are used.
+        '''
         for i in self.username:
             if(0<=ord(i)-ord('A')<=25 or 0<=ord(i)-ord('a')<=25 or 0<=ord(i)-ord('0')<=9):
                 continue
@@ -72,6 +124,9 @@ class RegisteringThreadSend(threading.Thread):
             return False  
         return True        
     def run(self):
+        '''
+        Register the user and wait for incoming messages from the client. Spawn Sending threads whenever message is received.
+        '''
         b = self.validate()
         if not b or self.username in UsernameToPortSend.keys():
             msg = 'ERROR 100 Malformed username\n\n'
@@ -152,6 +207,9 @@ class RegisteringThreadSend(threading.Thread):
                 #     self.connectionSocket.send(msg.encode())  
 
 class RegisteringThreadRecv(threading.Thread):
+    '''
+    Thread used for registering receiving socket of a user.
+    '''
     def __init__(self, connectionSocket, username):
         threading.Thread.__init__(self)
         self.connectionSocket = connectionSocket
@@ -170,6 +228,9 @@ class RegisteringThreadRecv(threading.Thread):
 
 
 def ServerProgrammeStart():
+    '''
+    Start of the server programme.
+    '''
     while True:
         connectionSocket, addr = serverSocket.accept()
         message = connectionSocket.recv(1024)
