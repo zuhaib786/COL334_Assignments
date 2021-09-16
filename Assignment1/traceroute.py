@@ -18,12 +18,12 @@ class Traceroute:
             process.kill()
             output = output.split(b"\n")
             output = [i.decode('utf-8') for i in output]
-            print("TTL = ", ttl)
+            print("TTL = ", ttl,flush = True)
             s = None
             for i in range(2, 5):
                 if (output[i].find('expired') == -1 and output[i].find('timed out') == -1):
-                    print(output[i])
-                    print(output[i].split()[4].split("=")[1][:-2])
+                    print(output[i],flush = True)
+                    print(output[i].split()[4].split("=")[1][:-2],flush = True)
                     self.RTT.append(int(output[i].split()[4].split("=")[1][:-2]))
                     self.data.append(ttl)
                     plt.plot(self.data, self.RTT)
@@ -37,7 +37,7 @@ class Traceroute:
             if(s==None):
                 self.RTT.append(0.0)
                 self.data.append(ttl)
-                print("*   *    *  RTTT = 0 due to timeout")
+                print("*   *    *  RTTT = 0 due to timeout",flush = True)
                 
             else:
                 s = s.split()
@@ -53,21 +53,21 @@ class Traceroute:
                 for i in range(2, 5):
                     if(output[i].find('expired')==-1 and output[i].find('timed out') == -1):
                         st = output[i].split()[4].split("=")[1][:-2]
-                        print(st, "ms",end = ' ')
+                        print(st, "ms",end = ' ',flush = True)
                         time+=int(st)
                         cnt+=1
                     else:
-                        print("*",end = ' ')
+                        print("*",end = ' ',flush = True)
                 if(cnt == 0):
                     self.data.append(ttl)
                     self.RTT.append(0)
-                    print("RTT = 0 due to ping failure")
+                    print("RTT = 0 due to ping failure",flush = True)
                 else:
                     self.data.append(ttl)
                     self.RTT.append(time/cnt)
-                    print("RTT = ", time/cnt)
-print("Enter the destination to Traceroute: ")
+                    print("RTT = ", time/cnt,flush = True)
+print("Enter the destination to Traceroute: ",flush =True)
 url = input().split()[0]
-print("Tracing route to ", url)
+print("Tracing route to ", url,flush = True)
 tracker = Traceroute(url, 0)
 tracker.run()

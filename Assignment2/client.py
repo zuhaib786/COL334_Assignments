@@ -18,7 +18,10 @@ class SendingThread(threading.Thread):
             reply = self.ClientSocketToSend.recv(1024)#Check the status of the sent message.
             reply = reply.decode()
             if(reply == "ERROR 103 Header incomplete\n\n"):
-                exit
+                print("Header incomplete. Some issue on application side. Please re-registor. If problem persists install updated application")
+                self.ClientSocketToSend.close()
+                Register()
+                break
             else:
                 data = reply.split()
                 if data[0] == 'SEND':
@@ -37,14 +40,16 @@ class ReceivingThread(threading.Thread):
         return 
     def run(self):
         while True:
-            message = self.ClientSocketToReceive.recv(1024)   
+            try:
+                message = self.ClientSocketToReceive.recv(1024)   
+            except:
+                print('Socket closed. Closing the thread')
+                return
             message = message.decode()
             data = message.split()
             s = message[message.find('\n\n'):]
             s = s.strip() 
-            # print(len(s), int(data[3]),len(s) == int(data[3]),flush=True)
-            # print(data, flush=True)
-            if(data[2]!='Content-length:' or len(s)!=int(data[3])):
+            if(len(data)<= 0 or data[2]!='Content-length:' or len(s)!=int(data[3])):
                 msg = 'ERROR 103 Incomplete Header\n\n'
                 self.ClientSocketToReceive.send(msg.encode())
                 continue
@@ -71,6 +76,7 @@ def Register():
         if data[0] == "REGISTERED":
             break
         elif message == 'ERROR 101 No user registered\n\n' or message == "Incorrect registration\n\n":
+            ClientSocketToSend.close()
             ClientSocketToSend = socket(AF_INET, SOCK_STREAM)
             ClientSocketToSend.connect((serverName,serverPort))
     ClientSocketToReceive = socket(AF_INET, SOCK_STREAM)
@@ -91,6 +97,6 @@ def Register():
         print("Some error, Try changing username and reapply",flush=True)    
 
 
-serverName = 'localhost'
+serverName = input('Enter IPaddress or DNS: ')
 serverPort = 18000
 Register()
