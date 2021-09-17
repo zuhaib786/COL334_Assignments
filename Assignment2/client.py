@@ -10,9 +10,24 @@ class SendingThread(threading.Thread):
         return
     def run(self):
         while True:
-            print("Enter message to Send" , flush=True)
-            message = input()
-            dest = input("Enter destination:")
+            message = ''
+            dest = ''
+            inp = input()
+            if (inp[0]!='@'):
+                print("Incorrect message sending format. Please enter again", flush = True)
+                continue
+            else:
+                inp = inp[1:]
+                data = inp.split()
+                if len(data)<2:
+                    print("Incorrect message sending format. Please try again", flush = True)
+                    continue
+                else:
+                    dest = data[0]
+                    message = inp[len(data[0])+1:]
+            # print("Enter message to Send" , flush=True)
+            # message = input()
+            # dest = input("Enter destination:")
             message_formated = "SEND "+dest+'\n'+'Content-length: '+str(len(message))+"\n\n"+message+'\n'
             self.ClientSocketToSend.send(message_formated.encode())
             reply = self.ClientSocketToSend.recv(1024)#Check the status of the sent message.
@@ -24,6 +39,7 @@ class SendingThread(threading.Thread):
                 break
             else:
                 data = reply.split()
+                print("DATA = ", data , flush=True)
                 if data[0] == 'SEND':
                     continue
                 else:
@@ -48,8 +64,9 @@ class ReceivingThread(threading.Thread):
             message = message.decode()
             data = message.split()
             s = message[message.find('\n\n'):]
-            s = s.strip() 
+            s = s.strip('\n') 
             if(len(data)<= 0 or data[2]!='Content-length:' or len(s)!=int(data[3])):
+                print("Content-length ",data[3], 'messagelength = ', len(s), flush=True)
                 msg = 'ERROR 103 Incomplete Header\n\n'
                 self.ClientSocketToReceive.send(msg.encode())
                 continue

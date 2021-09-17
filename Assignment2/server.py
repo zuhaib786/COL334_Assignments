@@ -94,6 +94,7 @@ class BroadcastSendingThread(threading.Thread):
                 self.connectionSocket.send(msg.encode())
                 msg = self.connectionSocket.recv(1024).decode()
                 data = msg.split()
+                print("DATA printed ", data, flush=True )
                 if data[0] == 'RECEIVED':
                     senderSocket = UsernameToPortSend[self.sender]
                 else:
